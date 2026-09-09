@@ -1,30 +1,16 @@
 #!/usr/bin/env node
-const logger = require('../src/logger.js')('bin');
-const arg = require('arg');
 const chalk = require('chalk');
-const getConfig = require('../src/config/config-mgr');
-const start = require('../src/commands/start');
+const { program } = require('commander');
+const { version } = require('../package.json');
 
-try {
-    const args = arg({
-        '--start': Boolean,
-        '--build': Boolean,
-    });
+program
+    .name('hem')
+    .description('Personal workstation launcher & developer cockpit')
+    .version(version);
 
-    logger.debug('Received args', args);
+require('./commands/app')(program);
+require('./commands/dev')(program);
+require('./commands/start')(program);
+require('./commands/doctor')(program);
 
-    if (args['--start']) {
-        const config = getConfig();
-        start(config);
-    }
-} catch (e) {
-    logger.warning(e.message);
-    console.log();
-    usage();
-}
-
-function usage() {
-    console.log(`${chalk.whiteBright('tool [CMD]')}
-  ${chalk.greenBright('--start')}\tStarts the app
-  ${chalk.greenBright('--build')}\tBuilds the app`);
-}
+program.parse(process.argv);
