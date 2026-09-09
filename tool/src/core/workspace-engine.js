@@ -73,14 +73,32 @@ async function WorkspaceEngine(config, options = {}) {
                     : cmd.run || resolveCommandTarget(config.commands || {}, cmdId);
 
                 const [file, ...args] = splitCommand(cmdSource);
-                logger.info(`Starting "${cmdSource}"`);
-                const child = execa(file, args, {
-                    cwd: cmd.cwd ? path.resolve(cwd, cmd.cwd) : cwd,
-                    stdio: 'inherit',
-                });
+                const resolvedCwd = cmd.cwd ? path.resolve(cwd, cmd.cwd) : cwd;
 
-                if (cmd.wait) {
-                    await child;
+                // Smart pre-flight check: don't run node scripts if no package.json exists
+                if ((file === 'npm' || file === 'yarn' || file === 'pnpm') && !require('fs').existsSync(path.join(resolvedCwd, 'package.json'))) {
+                    logger.warning(`Skipping "${cmdSource}" - no package.json found in ${resolvedCwd}`);
+                    continue;
+                }
+
+                logger.info(`Starting "${cmdSource}"`);
+                let child;
+                try {
+                    child = execa(file, args, {
+                        cwd: cmd.cwd ? path.resolve(cwd, cmd.cwd) : cwd,
+                        stdio: 'inherit',
+                    });
+
+                    if (cmd.wait) {
+                        await child;
+                    } else {
+                        // Attach a catch handler so background processes don't crash the CLI on exit
+                        child.catch((err) => {
+                            logger.warning(`[Background] Command "${cmdSource}" exited or failed: ${err.shortMessage || err.message}`);
+                        });
+                    }
+                } catch (err) {
+                    logger.warning(`Failed to run command "${cmdSource}": ${err.shortMessage || err.message}`);
                 }
             }
 

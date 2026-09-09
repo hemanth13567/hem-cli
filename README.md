@@ -1,49 +1,129 @@
-# 🚀 Hem-CLI
+# 🚀 Hem-CLI (v2 Architecture)
 
-**A powerful, config-driven Command Line Interface tool.**
+> **`hem` = Your personal workstation launcher & developer cockpit.**
+
+Instead of manually navigating to project directories and launching applications individually, `hem` orchestrates your software development, design, and research environments instantly based on domain intent and project context.
 
 ---
 
-## 🎀 Overview
+## 🏗️ Core Architecture & Boundaries
 
-This repo is my demo project for creating my own CLI tool natively. **Hem-CLI** is a robust and flexible command-line tool designed for streamlined development workflows. Built with a heavy emphasis on modularity, config validation, and developer experience through clean, colorized, and namespaced debug logging.
+```text
+                     ┌───────────────┐
+                     │    hem CLI    │
+                     └───────┬───────┘
+                             │
+                  ┌──────────▼──────────┐
+                  │    Command Router   │
+                  └──────────┬──────────┘
+                             │
+       ┌─────────────┬───────┼────────┬─────────────┐
+       │             │       │        │             │
+       ▼             ▼       ▼        ▼             ▼
+     dev          design   project    app         config
+       │             │       │        │
+       └─────────────┴───────┴────────┘
+                             │
+                    ┌────────▼────────┐
+                    │ Workspace Engine│
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+              ▼              ▼              ▼
+           Apps          Commands        Projects
+              │              │              │
+              └──────────────┼──────────────┘
+                             ▼
+                    ┌────────────────┐
+                    │ App/OS Adapter │
+                    └───────┬────────┘
+                            │
+                 ┌──────────┼──────────┐
+                 ▼          ▼          ▼
+               macOS     Windows     Linux
+```
 
-## 🛠️ Technology Stack & Packages
+---
 
-The tool leverages modern npm packages to provide a stellar experience:
+## 🛠️ Tech Stack
 
-| Package                                                                     | Purpose                                                             |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 🟢 [**Node.js**](https://nodejs.org/)                                       | Runtime environment.                                                |
-| 🎨 [**chalk**](https://www.npmjs.com/package/chalk)                         | Terminal string styling to make outputs gorgeous.                   |
-| 🐛 [**debug**](https://www.npmjs.com/package/debug)                         | Lightweight namespace-driven debugging utility.                     |
-| ⚙️ [**cosmiconfig**](https://www.npmjs.com/package/cosmiconfig)             | Hunts for configuration files seamlessly (`tool.config.js`).        |
-| 🛡️ [**ajv**](https://ajv.js.org/)                                          | JSON Schema validator to ensure robust config structures.           |
-| 🚨 [**better-ajv-errors**](https://www.npmjs.com/package/better-ajv-errors) | Human-readable and intuitive error messages for format validations. |
-| ⌨️ [**arg**](https://www.npmjs.com/package/arg)                             | Simple, robust command-line argument parsing.                       |
+| Package | Purpose |
+| --- | --- |
+| 🟢 **Commander.js** | Command routing, options, and subcommand management |
+| ⚙️ **Cosmiconfig** & **AJV** | Global (`~/.config/hem/config.yaml`) & local (`hem.yaml`) configuration with JSON schema validation |
+| 🚀 **Execa** | Safe background process execution and command spawning |
+| 🌐 **Open** | OS-agnostic application launcher (Windows / macOS / Linux) |
+| 🎨 **Chalk** & **Boxen** | TTY-aware color styling and boxed UI containers |
+| 🧙 **@inquirer/prompts** & **Ora** | Interactive terminal wizard (`hem start`) & loading spinners |
+| 🧪 **Jest** | Automated unit and integration testing suite |
 
-## 🚀 Getting Started
+---
 
-### 1. Installation
+## 💻 Domain Commands Reference
 
-Run this in your terminal to properly install dependencies using npm:
+```bash
+hem start               # Interactive context-aware workstation launcher wizard
+hem dev [workspace]     # Launch dev workspace profile (e.g. hem dev frontend, hem dev backend)
+hem design [profile]    # Launch creative design environment (e.g. hem design ui, hem design graphics)
+hem web                 # Launch browser-oriented workspace
+hem work                # Launch general work environment
+
+hem app add <id> [path] # Register an application
+hem app scan            # Auto-detect applications on your local machine
+hem app list            # List registered applications
+
+hem project add [path]  # Register project with auto-detection (Node, React, Rust, Go, Docker)
+hem project dev <name>  # Launch workspace tuned for specific project
+
+hem workspace list      # Show configured workspace profiles
+hem workspace show <id> # Inspect apps and commands in a workspace
+
+hem doctor              # Run system & configuration diagnostics
+hem status              # Display active context, registered apps, and workspaces
+hem config show         # Display merged configuration YAML
+hem config completion   # Output shell autocomplete script (bash, zsh, powershell)
+```
+
+---
+
+## ⚙️ Configuration Example (`hem.yaml`)
+
+```yaml
+apps:
+  vscode: code
+  chrome: chrome
+  figma: figma
+
+commands:
+  dev-server: npm run dev
+  docker-up: docker-compose up -d
+
+workspaces:
+  dev:
+    description: "General coding workspace"
+    apps:
+      - vscode
+      - terminal
+  frontend:
+    description: "Frontend development workstation"
+    apps:
+      - vscode
+      - chrome
+    commands:
+      - dev-server
+  design:
+    description: "UI & graphics environment"
+    apps:
+      - figma
+      - chrome
+```
+
+---
+
+## 🧪 Running Tests
 
 ```bash
 cd tool
-npm install
+npm test
 ```
-
-### 2. Available Commands
-
-Start the application by passing the `--start` flag. Prefix the execution with `DEBUG=*` to get detailed visibility into what the CLI is executing internally.
-
-```bash
-# General Usage
-tool [CMD]
-
-# Examples
-DEBUG=* tool --start
-tool --build
-```
-
----

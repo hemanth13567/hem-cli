@@ -3,7 +3,9 @@ const logger = require('../cli/logger')('commands:app');
 const {
     loadGlobalConfig,
     saveGlobalConfig,
+    GLOBAL_CONFIG_FILE,
 } = require('../config/config-manager');
+const { scanInstalledApps } = require('../adapters/platform');
 
 module.exports = function appCommand(program) {
     const app = program
@@ -18,7 +20,7 @@ module.exports = function appCommand(program) {
             config.apps[id] = target || id;
             saveGlobalConfig(config);
             logger.success(`Registered application "${id}" -> "${target || id}"`);
-            logger.info(`Stored in ${chalk.gray(require('../config/config-manager').GLOBAL_CONFIG_FILE)}`);
+            logger.info(`Stored in ${chalk.gray(GLOBAL_CONFIG_FILE)}`);
         });
 
     app.command('remove <id>')
@@ -47,5 +49,31 @@ module.exports = function appCommand(program) {
             }
             logger.info('Registered applications:');
             ids.forEach((id) => console.log(`  ${chalk.green(id)} -> ${chalk.gray(apps[id])}`));
+        });
+
+    app.command('scan')
+        .description('Scan machine for installed development applications')
+        .action(() => {
+            logger.info('Scanning system for installed tools...');
+            const detected = scanInstalledApps();
+            const keys = Object.keys(detected);
+
+            if (keys.length === 0) {
+                logger.warning('No standard applications detected automatically.');
+                return;
+            }
+
+            logger.info('Detected applications on your system:');
+            const config = loadGlobalConfig();
+            config.apps = config.apps || {};
+
+            keys.forEach((key) => {
+                const appPath = detected[key];
+                config.apps[key] = appPath;
+                console.log(`  ✓ ${chalk.green(key)} -> ${chalk.gray(appPath)}`);
+            });
+
+            saveGlobalConfig(config);
+            logger.success(`Automatically registered ${keys.length} application(s) to global config.`);
         });
 };

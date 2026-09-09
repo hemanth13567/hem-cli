@@ -39,17 +39,59 @@ const GLOBAL_DIR = process.env.HEM_CONFIG_DIR
 const GLOBAL_CONFIG_FILE = process.env.HEM_CONFIG_FILE
     || path.join(GLOBAL_DIR, 'config.yaml');
 
+const DEFAULT_CONFIG = {
+    apps: {
+        vscode: 'code',
+        chrome: 'chrome',
+        figma: 'figma',
+        terminal: 'cmd',
+    },
+    commands: {
+        'dev-server': 'npm run dev',
+        'build': 'npm run build',
+    },
+    workspaces: {
+        dev: {
+            description: 'General coding environment',
+            apps: ['vscode', 'terminal'],
+        },
+        frontend: {
+            description: 'Frontend development environment',
+            apps: ['vscode', 'chrome'],
+            commands: ['dev-server'],
+        },
+        backend: {
+            description: 'Backend API development environment',
+            apps: ['vscode', 'terminal'],
+        },
+        design: {
+            description: 'Creative design workspace',
+            apps: ['figma', 'chrome'],
+        },
+        web: {
+            description: 'Browser & web research workspace',
+            apps: ['chrome'],
+        },
+        work: {
+            description: 'General workstation environment',
+            apps: ['vscode', 'chrome'],
+        },
+    },
+    projects: {},
+};
+
 function ensureGlobalDir() {
     fs.mkdirSync(GLOBAL_DIR, { recursive: true });
 }
 
 function loadGlobalConfig() {
+    const defaultConfigClone = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     if (!fs.existsSync(GLOBAL_CONFIG_FILE)) {
-        return { apps: {}, commands: {}, workspaces: {} };
+        return defaultConfigClone;
     }
     const raw = fs.readFileSync(GLOBAL_CONFIG_FILE, 'utf8');
     const parsed = YAML.parse(raw) || {};
-    return parsed;
+    return deepMerge(defaultConfigClone, parsed);
 }
 
 function saveGlobalConfig(config) {
