@@ -8,7 +8,7 @@ Instead of manually navigating to project directories and launching applications
 
 ## 🏗️ Core Architecture & Boundaries
 
-```text
+```
                      ┌───────────────┐
                      │    hem CLI    │
                      └───────┬───────┘
@@ -48,15 +48,15 @@ Instead of manually navigating to project directories and launching applications
 
 ## 🛠️ Tech Stack
 
-| Package | Purpose |
-| --- | --- |
-| 🟢 **Commander.js** | Command routing, options, and subcommand management |
-| ⚙️ **Cosmiconfig** & **AJV** | Global (`~/.config/hem/config.yaml`) & local (`hem.yaml`) configuration with JSON schema validation |
-| 🚀 **Execa** | Safe background process execution and command spawning |
-| 🌐 **Open** | OS-agnostic application launcher (Windows / macOS / Linux) |
-| 🎨 **Chalk** & **Boxen** | TTY-aware color styling and boxed UI containers |
-| 🧙 **@inquirer/prompts** & **Ora** | Interactive terminal wizard (`hem start`) & loading spinners |
-| 🧪 **Jest** | Automated unit and integration testing suite |
+| Package                            | Purpose                                                                                             |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 🟢 **Commander.js**                | Command routing, options, and subcommand management                                                 |
+| ⚙️ **Cosmiconfig** & **AJV**       | Global (`~/.config/hem/config.yaml`) & local (`hem.yaml`) configuration with JSON schema validation |
+| 🚀 **Execa**                       | Safe background process execution and command spawning                                              |
+| 🌐 **Open**                        | OS-agnostic application launcher (Windows / macOS / Linux)                                          |
+| 🎨 **Chalk** & **Boxen**           | TTY-aware color styling and boxed UI containers                                                     |
+| 🧙 **@inquirer/prompts** & **Ora** | Interactive terminal wizard (`hem start`) & loading spinners                                        |
+| 🧪 **Jest**                        | Automated unit and integration testing suite                                                        |
 
 ---
 

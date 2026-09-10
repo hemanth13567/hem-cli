@@ -18,7 +18,8 @@ function resolveCommandTarget(commands, id) {
             return commands[key];
         }
     }
-    throw new Error(`Unknown command "${id}". Define it under "commands:" in your hem config.`);
+    // Not a named alias — treat as a raw shell command
+    return id;
 }
 
 function splitCommand(cmd) {
@@ -63,6 +64,7 @@ async function WorkspaceEngine(config, options = {}) {
             if (apps.length) {
                 await appLauncher.launchMany(
                     apps.map((id) => resolveAppTarget(config.apps || {}, id)),
+                    { cwd },
                 );
             }
 
@@ -78,6 +80,19 @@ async function WorkspaceEngine(config, options = {}) {
                 // Smart pre-flight check: don't run node scripts if no package.json exists
                 if ((file === 'npm' || file === 'yarn' || file === 'pnpm') && !require('fs').existsSync(path.join(resolvedCwd, 'package.json'))) {
                     logger.warning(`Skipping "${cmdSource}" - no package.json found in ${resolvedCwd}`);
+                    continue;
+                }
+
+                // If the command looks like a URL, launch it with the app-adapter (detached)
+                if (args.length === 1 && (args[0].startsWith('http://') || args[0].startsWith('https://'))) {
+                    logger.info(`Opening URL "${args[0]}" with ${file}`);
+                    const exePath = resolveAppTarget(config.apps || {}, file);
+                    try {
+                        const { spawn } = require('child_process');
+                        spawn(exePath, [args[0]], { detached: true, stdio: 'ignore' }).unref();
+                    } catch (err) {
+                        logger.warning(`Failed to open URL "${args[0]}": ${err.message}`);
+                    }
                     continue;
                 }
 
